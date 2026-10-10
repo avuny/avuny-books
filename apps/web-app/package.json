@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@avuny/web-app",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -12,10 +12,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@workspace/ui": "workspace:*",
+    "@avuny/ui": "workspace:*",
+    "@avuny/web-features": "workspace:*",
+    "@avuny/web-host": "workspace:*",
+    "@tanstack/react-query": "^5.67.1",
     "lucide-react": "^1.54.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "react-router": "^7.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10",

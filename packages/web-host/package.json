@@ -1,0 +1,31 @@
+{
+  "name": "@avuny/web-host",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./host-providers": "./src/host-providers.tsx",
+    "./react-router-adapter": "./src/react-router-adapter.tsx",
+    "./locale-store": "./src/locale-store.ts"
+  },
+  "dependencies": {
+    "@avuny/i18n": "workspace:*",
+    "@avuny/web-features": "workspace:*",
+    "@avuny/zod": "workspace:*",
+    "@tanstack/react-query": "^5.67.1",
+    "react-router": "^7.3.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@avuny/typescript-config": "workspace:*",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "~5.8.3"
+  }
+}

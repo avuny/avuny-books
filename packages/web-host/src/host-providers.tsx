@@ -1,0 +1,33 @@
+// packages/web-host/src/host-providers.tsx
+import { useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
+import {
+  LocaleProvider,
+  RouterAdapterProvider,
+  type RouterAdapter,
+} from "@avuny/web-features/host";
+import { getLocale, setLocale, subscribeLocale } from "./locale-store";
+
+type HostProvidersProps = {
+  router: RouterAdapter;
+  queryClient: QueryClient;
+  children: ReactNode;
+};
+
+/** Everything web-features expects from its host, in one place. */
+export const HostProviders = ({
+  router,
+  queryClient,
+  children,
+}: HostProvidersProps) => {
+  const locale = useSyncExternalStore(subscribeLocale, getLocale);
+  const localeState = useMemo(() => ({ locale, setLocale }), [locale]);
+
+  return (
+    <RouterAdapterProvider adapter={router}>
+      <LocaleProvider value={localeState}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </LocaleProvider>
+    </RouterAdapterProvider>
+  );
+};
