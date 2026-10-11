@@ -5,8 +5,14 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./host": "./src/host.tsx",
-    "./app": "./src/app.tsx"
+    "./core": "./src/core/index.ts",
+    "./web": "./src/web/index.tsx",
+    "./admin": "./src/admin/index.tsx",
+    "./host": "./src/core/index.ts",
+    "./app": "./src/web/index.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@avuny/i18n": "workspace:*"

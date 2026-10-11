@@ -14,7 +14,7 @@ import type {
   LinkProps,
   NavigateOptions,
   RouterAdapter,
-} from "@avuny/web-features/host";
+} from "@avuny/web-features/core";
 
 const Link = ({ to, replace, ...rest }: LinkProps) => (
   <RouterLink to={to} replace={replace} {...rest} />

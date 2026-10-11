@@ -12,7 +12,7 @@ import {
   ProductDetailsPage,
   ProductsPage,
   productPaths,
-} from "@avuny/web-features/app";
+} from "@avuny/web-features/web";
 
 const queryClient = new QueryClient();
 

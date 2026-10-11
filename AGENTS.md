@@ -27,7 +27,7 @@ packages/
   contracts/            Zod schemas and shared types for api, web and mobile
   utils/                Runtime-agnostic helpers (including the ok/fail Result)
   ui/                   shadcn/ui components. Web only
-  web-features/         Framework-agnostic web features + host contract (`@avuny/web-features/host`)
+  web-features/         Framework-agnostic web features split into core, web, admin (`@avuny/web-features/core`, `web`, `admin`)
   web-host/             Vite host glue: router adapter, locale store, HostProviders
   web-mobile-shared/    API client, query hooks, formatting. No DOM
   eslint-config/        Shared lint presets and import-boundary rules
@@ -39,7 +39,7 @@ packages/
 - Apps import packages. Packages never import apps.
 - `i18n`, `utils`, `zod`, `contracts`: runtime-agnostic. No Node, DOM or db imports.
 - `web-features` and `web-mobile-shared`: never import `db` or `hono`. Import `api` only as `import type` (e.g. `AppType`).
-- `web-features`: no `next/*` and no router library. Routing and locale come only from `@avuny/web-features/host`.
+- `web-features`: no `next/*` and no router library. Routing and locale come only from `@avuny/web-features/core` (or `@avuny/web-features/host`).
 - `web-mobile-shared`: no DOM. It is compiled without the DOM lib.
 - `ui` is web only. Mobile must not import it.
 - Import `z` only from `@avuny/zod`. Import the `Locale` type only from `@avuny/i18n`.
@@ -56,7 +56,7 @@ packages/
 ## Frontend conventions
 
 - Apps are thin hosts: route table, QueryClient, env, guards and layouts. Pages and logic live in `web-features`.
-- Features import routing and locale only from `@avuny/web-features/host` (`Link`, `useNavigate`, `useParams`, `useSearchParams`, `usePathname`, `useLocale`, `useMessages`).
+- Features import routing and locale only from `@avuny/web-features/core` (or `@avuny/web-features/host`) (`Link`, `useNavigate`, `useParams`, `useSearchParams`, `usePathname`, `useLocale`, `useMessages`).
 - Path constants live with the feature. Links and the host's route table both use them.
 - API calls go only through the Orval-generated clients and TanStack Query hooks. Never hand-write fetch code for an API endpoint. Regenerate with the `regenerate-api-clients` skill.
 - Tables use TanStack Table.

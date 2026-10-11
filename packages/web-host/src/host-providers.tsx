@@ -5,7 +5,7 @@ import {
   LocaleProvider,
   RouterAdapterProvider,
   type RouterAdapter,
-} from "@avuny/web-features/host";
+} from "@avuny/web-features/core";
 import { getLocale, setLocale, subscribeLocale } from "./locale-store";
 
 type HostProvidersProps = {
