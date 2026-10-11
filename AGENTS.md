@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repo. Keep changes small, follow t
 
 ## Project
 
-Multi-tenant business management platform for small and medium businesses. Domain packages (auth, billing) are written to be reusable across SaaS apps.
+A multi-tenant SaaS for small and medium businesses (SMBs): one integrated system to run inventory, sales, purchasing and cash, and to see where the business stands financially. The central bet is closing the gap between day-to-day operations (stock, orders, purchases) and their financial consequences (receivables, payables, cost of goods, cash).
 
 ## Layout
 
