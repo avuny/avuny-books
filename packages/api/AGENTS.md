@@ -71,13 +71,4 @@ src/modules/<name>/
 
 ## API client workflow
 
-After changing a route or a contract, from the repo root:
-
-1. Run `openapi:generate` to produce the OpenAPI spec for the server apps.
-2. Run `api:generate` to generate the Orval React / TanStack Query clients.
-3. Never hand-edit generated files. Fix the route or contract and regenerate.
-
-<!-- TODO(confirm): where Orval output lives (must be a package, not an app, so web-features can import it), and whether generated files are committed. -->
-<!-- TODO(confirm): how a route declares auth and permissions, and how tenant (organization) scoping is enforced in repositories. -->
-<!-- TODO(confirm): request language access (`c.get("lang")` here vs `locale` in the hono package) and whether `@avuny/i18n` messages stay. -->
-<!-- TODO(confirm): test runner and package manager commands. -->
+After changing a route, contract or error response, run the `regenerate-api-clients` skill (`openapi:generate`, then `api:generate`). Client outputs are generated into `@avuny/web-mobile-shared`. Never hand-edit generated files.

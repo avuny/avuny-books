@@ -74,13 +74,20 @@ Run from the repo root. Tasks run through Turborepo.
 - Test: `turbo run test --filter=<package>`
 - API clients: `openapi:generate`, then `api:generate` (root scripts)
 
-<!-- TODO(confirm): package manager, install command, and the exact task names in turbo.json. -->
-
 ## Agent setup
 
 - `AGENTS.md` files are the single source of truth. Nested ones add package rules.
 - `CLAUDE.md` files only contain `@AGENTS.md`. Do not put shared rules in `CLAUDE.md` or `GEMINI.md`, only tool-specific ones.
-- Skills live in `.agents/skills/` (symlinked into `.claude/skills/` for Claude Code). Prefer them for adding modules, routes and error codes, and for regenerating clients: `add-api-module`, `add-api-route`, `add-error-code`, `regenerate-api-clients`.
+- Rules live in `.agents/rules/` (`env-and-config`, `provider-strategy-pattern`, `repetition-and-codegen`, `shared-code-first`, `shared-contracts-and-validation`, `ui-i18n-rtl-theming`).
+- Skills live in `.agents/skills/`:
+  - `add-feature`: build a vertical slice across contracts, db, api, shared hooks, UI and tests
+  - `add-api-module`: scaffold a domain module in `packages/api`
+  - `add-api-route`: add an HTTP endpoint with OpenAPI and typed domain errors
+  - `add-error-code`: add domain error codes, HTTP status mapping, and translations
+  - `add-provider`: implement pluggable integrations with the provider/strategy pattern
+  - `add-generator`: scaffold repetitive code via `turbo gen` or derived scripts
+  - `regenerate-api-clients`: regenerate OpenAPI spec and TanStack Query clients
+  - `definition-of-done`: final verification checklist before completing a task or PR
 
 ## Working rules for agents
 
@@ -108,3 +115,108 @@ When asked to review Git changes or suggest a commit message:
 9. Do not modify files, stage changes, create commits, or run destructive Git commands when only asked to suggest a message.
 
 Output only the proposed commit message in a Markdown code block, ready to copy into Git.
+
+
+## Versioning and Changelog Rules
+
+- Use Changesets for package release metadata.
+- Never manually edit package versions or generated
+  changelogs when Changesets should manage them.
+- After implementing a change, inspect the Git diff
+  and identify affected workspaces and public APIs.
+- Create a changeset for every change that requires
+  a package release.
+- Use patch for backward-compatible bug fixes,
+  minor for backward-compatible features, and major
+  for breaking public API changes.
+- Do not bump versions for formatting, internal
+  refactoring, or documentation-only changes unless
+  the release policy requires it.
+- Do not assume every dependent app needs a version
+  bump merely because a shared package changed.
+- Do not create a changeset for every commit; group
+  related work into meaningful release changes.
+- Never run a release or publish command unless
+  explicitly authorized.
+- Run the repository's actual scripts, not assumed
+  commands. Check each workspace's package.json and
+  the root task configuration.
+- Report affected workspaces, proposed bumps,
+  tests executed, and any unresolved release risks.
+
+
+## Base node package
+`packages/contracts` is the reference. Every library package has this shape:
+
+packages/<name>/
+  src/index.ts           the only public entrypoint
+  src/*.test.ts          vitest, next to the code
+  package.json           name @avuny/<name>, private, exports point to dist
+  tsconfig.json          extends @avuny/typescript-config/base.json
+  tsconfig.build.json    emits to dist/, tests excluded
+  eslint.config.js       spreads @avuny/eslint-config/base
+  AGENTS.md              package purpose and package-specific rules
+  CLAUDE.md              only `@AGENTS.md`
+
+Keep the template's script names (dev, build, lint, typecheck, test, ...)
+so `turbo run <task>` works everywhere.
+
+## Creating a new package or app
+- Never hand-write or hand-copy package files. Generate them:
+  `pnpm turbo gen workspace --type package --name @avuny/<name> --copy @avuny/contracts --destination packages/<name>`
+- For an app, copy the closest existing app of the same kind instead
+  (Vite: apps/web-app, Hono server: apps/hono-node-server, Expo: apps/mobile-app),
+  with `--type app --destination apps/<name>`.
+- After generating: delete any copied `dist/`, `.turbo/`, `node_modules/`; write the
+  purpose line in the new AGENTS.md; run `pnpm install`; then
+  `pnpm turbo run build lint typecheck test --filter=@avuny/<name>`.
+  Don't report done until all four pass.
+- Internal dependencies use `workspace:*`. Don't change the template's tooling
+  (test runner, tsconfig base, scripts) in a new package. If you think the
+  template should change, say so instead.
+
+
+  ## Testing (Vitest)
+
+Tests are executable behavioral contracts: write them to protect behavior that must survive refactoring, not to raise coverage. Aim for risk-based coverage, not 100%. Before adding a test, ask: would it matter if this behavior silently broke, and would the test survive a behavior-preserving refactor? If not, skip or rewrite it.
+
+### What to test
+- Business rules, domain logic, validation, important edge cases
+- Authentication, authorization, security, tenant/data isolation
+- Error handling and `Result` behavior
+- State changes, data integrity, transactions, critical workflows
+- API status codes, response shapes, cookies, error mapping
+- Regression tests for bugs that actually occurred
+
+Always cover important negative paths, not just success.
+
+### What not to test
+- Trivial getters/setters, simple pass-through delegation, framework behavior
+- Implementation details (private helpers, internal call order) and trivial helpers like `ok()` / `fail()`
+- Branches that exist only for coverage, or the same behavior at several layers
+
+### By layer
+| Layer | Verify | Notes |
+|---|---|---|
+| Service / use case | Business rules, success and failure paths, security invariants, side effects, state transitions, edge cases | Main coverage lives here |
+| Route | Request validation, auth wiring, use-case call, status codes, serialization, cookies/headers, error→HTTP mapping | Keep thin; don't repeat service logic |
+| Integration | DB queries, transactions, repositories, tenant isolation, critical end-to-end flows | Real infrastructure, test database only |
+
+Unit tests mock only I/O boundaries (repositories, external APIs, token providers, password hashing, email/SMS) and use real pure functions when they are cheap. Tenant isolation tests create two tenants and assert A can never read or change B's data.
+
+### Writing tests
+- Arrange → Act → Assert. Name tests by observable behavior: `returns an error when the password is incorrect`.
+- Assert on returned values and state changes. For negative paths, also assert that forbidden side effects did not happen: invalid OTP → user not created; invalid credentials → no tokens generated; failed refresh verification → old token not deleted.
+- Use small, typed mock factories (e.g. `createUserRepoMock(overrides?)`), not large global mocks. Fresh mocks per test, no shared state.
+- No `any`; narrow type assertions are fine for test doubles.
+- Keep tests deterministic: control time and randomness (`vi.useFakeTimers()`, injected clocks), no real network.
+- Co-locate as `src/*.test.ts` and import `describe`, `it`, `expect`, `vi` from `"vitest"` (no globals).
+
+### Rules for AI agents
+Tests are part of the project contract. When changing code:
+1. Read the relevant tests first. Treat passing tests as requirements unless the requirement intentionally changed; if it did, update them in the same change and say why.
+2. Run focused tests first (`pnpm --filter @avuny/<pkg> exec vitest run <path>`), then the package suite (`pnpm --filter @avuny/<pkg> test`).
+3. If a test fails, decide whether the code or the requirement is wrong before touching the test.
+4. Never delete, skip (`it.skip`), or weaken a test just to get green, and never leave `it.only` behind.
+5. When fixing a real bug, add a regression test if practical, ideally one that fails before the fix.
+6. Prefer a few high-value tests over large repetitive suites.
