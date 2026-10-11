@@ -13,16 +13,19 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "clean:build": "rm -rf dist && rm -rf tsconfig.build.tsbuildinfo && rm -rf .turbo",
-    "clean:modules": "rm -rf node_modules",
-    "clean:all": "pnpm clean:modules && clean:build",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint .",
+    "api:extract": "api-extractor run --local",
     "api:docs": "api-documenter markdown -i temp -o docs",
-    "api:extract": "api-extractor run --local"
+    "clean:build": "rm -rf dist tsconfig.build.tsbuildinfo .turbo",
+    "clean:modules": "rm -rf node_modules",
+    "clean:all": "pnpm clean:modules && pnpm clean:build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.7",
