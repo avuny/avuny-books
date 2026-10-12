@@ -13,7 +13,8 @@
     "clean:build": "turbo clean:build --concurrency=20",
     "clean:packages": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && rm -f pnpm-lock.yaml",
     "clean:all": "pnpm run clean:build && pnpm run clean:packages",
-    "print-files": "node ./scripts/print-files.js"
+    "print-files": "node ./scripts/print-files.js",
+    "openapi:generate": "turbo run openapi:generate --filter=@avuny/api"
   },
   "devDependencies": {
     "@avuny/eslint-config": "workspace:*",

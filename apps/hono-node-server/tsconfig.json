@@ -1,0 +1,11 @@
+{
+  "extends": "@avuny/typescript-config/base.json",
+  "compilerOptions": {
+    // "paths": {
+    //   "@/*": ["./src/*"]
+    // }
+  },
+  "exclude": [
+    "orval.config.ts"
+  ]
+}
