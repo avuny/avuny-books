@@ -1,44 +1,39 @@
 {
-  "name": "@db/contracts",
+  "name": "@avuny/db",
   "version": "0.0.0",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "private": true,
-  "author": {
-    "name": "Khaled Eleskandrany",
-    "email": "khaledeskandrany@gmail.com"
-  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "default": "./dist/schema/index.js"
     }
   },
   "scripts": {
-    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "build": "tsc -p tsconfig.build.json",
-    "lint": "eslint .",
+    "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "api:extract": "api-extractor run --local",
-    "api:docs": "api-documenter markdown -i temp -o docs",
-    "clean:build": "rm -rf dist tsconfig.build.tsbuildinfo .turbo",
-    "clean:modules": "rm -rf node_modules",
-    "clean:all": "pnpm clean:modules && pnpm clean:build"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.0",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.7",
-    "@microsoft/api-documenter": "^7.26.29",
-    "@microsoft/api-extractor": "^7.52.8",
-    "@vitest/coverage-v8": "3.2.4",
-    "@vitest/ui": "^3.2.3",
-    "eslint": "^9.28.0",
-    "typescript": "~5.8.3",
-    "vitest": "^3.2.3"
-  },
-  "dependencies": {}
+    "@types/node": "^26.6.3",
+    "@avuny/typescript-config": "workspace:*",
+    "dotenv": "^17.4.2",
+    "drizzle-kit": "^0.30.0",
+    "typescript": "^5.7.0"
+  }
 }

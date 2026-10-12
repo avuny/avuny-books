@@ -220,3 +220,8 @@ Tests are part of the project contract. When changing code:
 4. Never delete, skip (`it.skip`), or weaken a test just to get green, and never leave `it.only` behind.
 5. When fixing a real bug, add a regression test if practical, ideally one that fails before the fix.
 6. Prefer a few high-value tests over large repetitive suites.
+
+## Database seeding
+- Follow the `database-seeding` skill when creating, modifying, or debugging database seed files.
+- Keep database infrastructure and reusable seed logic in `packages/db`, not `packages/api`.
+- Never run destructive database operations or seed production without explicit authorization.
