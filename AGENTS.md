@@ -16,7 +16,7 @@ apps/
   hono-vercel-server/   Vercel entry for the same `api` app
   web-app/              Public app (Vite). Host only: routes, guards, layouts, providers
   admin-app/            Internal admin dashboard (Vite). Host only, same rule
-  mobile-app/           Expo / React Native
+  mobile-app/           Expo (Router). Host only: app/ files re-export screens, layouts, providers
 packages/
   api/                  Modules: repositories, services, Hono routes. Has its own AGENTS.md
   db/                   Drizzle schema, migrations, client. Only `api` imports it
@@ -26,10 +26,13 @@ packages/
   zod/                  The only source of `z`, plus locale helpers
   contracts/            Zod schemas and shared types for api, web and mobile
   utils/                Runtime-agnostic helpers (including the ok/fail Result)
+  theme/                Design tokens (typed data) and generated web CSS / native theme. Runtime-agnostic
   ui/                   shadcn/ui components. Web only
+  mobile-ui/            Native primitives (Uniwind). Twin of `ui`. Native only
   web-features/         Framework-agnostic web features split into core, web, admin (`@avuny/web-features/core`, `web`, `admin`)
+  mobile-features/      Native features split by module (`core`, `modules/<m>`). Twin of `web-features`
   web-host/             Vite host glue: router adapter, locale store, HostProviders
-  web-mobile-shared/    API client, query hooks, formatting. No DOM
+  web-mobile-shared/    API client, query hooks, session, form logic, formatters, shared messages. No DOM, no react-native
   eslint-config/        Shared lint presets and import-boundary rules
   typescript-config/    Base tsconfigs
 ```
@@ -41,9 +44,21 @@ packages/
 - `web-features` and `web-mobile-shared`: never import `db` or `hono`. Import `api` only as `import type` (e.g. `AppType`).
 - `web-features`: no `next/*` and no router library. Routing and locale come only from `@avuny/web-features/core` (or `@avuny/web-features/host`).
 - `web-mobile-shared`: no DOM. It is compiled without the DOM lib.
-- `ui` is web only. Mobile must not import it.
+- `ui` is web only. Mobile must not import it. `mobile-ui` is native only. Web must not import it.
 - Import `z` only from `@avuny/zod`. Import the `Locale` type only from `@avuny/i18n`.
 - Only `hono` uses `node:async_hooks`.
+
+Layers: a package imports only from lower layers, and never across web and mobile.
+  L0 contracts, utils, i18n, theme, zod
+  L1 web-mobile-shared
+  L2 ui | mobile-ui
+  L3 web-features | mobile-features
+  L4 apps (web-host is host glue, used only by the Vite apps)
+ui, web-features, web-host: never import react-native* or @avuny/mobile-*.
+mobile-ui, mobile-features: never import react-dom, @avuny/ui or @avuny/web-*. Never import db or hono; api only as import type.
+web-mobile-shared: no DOM and no react-native. Never imports ui or any features package.
+theme: runtime-agnostic: no React, DOM or react-native.
+These are enforced by lint in @avuny/eslint-config. Do not disable them.
 
 ## Backend conventions
 
@@ -55,13 +70,22 @@ packages/
 
 ## Frontend conventions
 
-- Apps are thin hosts: route table, QueryClient, env, guards and layouts. Pages and logic live in `web-features`.
+- Apps are thin hosts: route table, QueryClient, env, guards and layouts. Pages and logic live in `web-features` (web) or `mobile-features` (mobile).
 - Features import routing and locale only from `@avuny/web-features/core` (or `@avuny/web-features/host`) (`Link`, `useNavigate`, `useParams`, `useSearchParams`, `usePathname`, `useLocale`, `useMessages`).
 - Path constants live with the feature. Links and the host's route table both use them.
 - API calls go only through the Orval-generated clients and TanStack Query hooks. Never hand-write fetch code for an API endpoint. Regenerate with the `regenerate-api-clients` skill.
 - Tables use TanStack Table.
 - RTL and themes: use logical CSS properties (start/end, not left/right). Use theme tokens for color (light, dark and multiple themes), never hard-coded colors.
-- Strings: `Locale`, direction and `resolveLocale` come from `@avuny/i18n`. Server error text lives in `api` (i18next). Feature UI strings live next to the feature, with `en` as the shape and other locales typed as `typeof en`.
+- Strings: `Locale`, direction and `resolveLocale` come from `@avuny/i18n` (helpers only, no catalogs). Strings used by both web and mobile live in `web-mobile-shared/src/modules/<module>/messages` (`en` is the shape, other locales typed as `typeof en`). Platform-only strings live next to the feature in `web-features` or `mobile-features`. A key never exists in both. `useMessages` lives in `web-mobile-shared` and is re-exported from each features package's core. Server error text lives in `api` (i18next).
+- Modules mirror across layers, with the same names:
+  ```text
+  web-mobile-shared/src/modules/<m>/{api,hooks,forms,messages}
+  web-features/src/modules/<m>/{screens,components,paths.ts,messages.ts}
+  mobile-features/src/modules/<m>/{screens,components,messages.ts}
+  ```
+- Hooks return data, status and actions (no JSX, styling or navigation). Logic needed by both platforms goes in `web-mobile-shared` in the same change; copying it between `web-features` and `mobile-features` is a defect. Create a mobile module only when a mobile screen needs it.
+- Mobile: `apps/mobile-app` only re-exports screens from `mobile-features` (Expo Router `app/` files), plus layouts and providers. Native UI comes from `mobile-ui`, which mirrors `ui` (same names, props, variants). See the `mobile-and-theme` rule.
+- Tokens: colors, radius, spacing and type scale come from `@avuny/theme`. Never hand-edit its generated files.
 
 ## Commands
 
@@ -78,16 +102,17 @@ Run from the repo root. Tasks run through Turborepo.
 
 - `AGENTS.md` files are the single source of truth. Nested ones add package rules.
 - `CLAUDE.md` files only contain `@AGENTS.md`. Do not put shared rules in `CLAUDE.md` or `GEMINI.md`, only tool-specific ones.
-- Rules live in `.agents/rules/` (`env-and-config`, `provider-strategy-pattern`, `repetition-and-codegen`, `shared-code-first`, `shared-contracts-and-validation`, `ui-i18n-rtl-theming`).
+- Rules live in `.agents/rules/` (`env-and-config`, `mobile-and-theme`, `provider-strategy-pattern`, `repetition-and-codegen`, `shared-code-first`, `shared-contracts-and-validation`, `ui-i18n-rtl-theming`).
 - Skills live in `.agents/skills/`:
-  - `add-feature`: build a vertical slice across contracts, db, api, shared hooks, UI and tests
+  - `add-feature`: build a vertical slice across contracts, db, api, shared hooks, UI and tests (when a mobile counterpart is needed, also cover shared messages and the `mobile-features` screens)
   - `add-api-module`: scaffold a domain module in `packages/api`
   - `add-api-route`: add an HTTP endpoint with OpenAPI and typed domain errors
   - `add-error-code`: add domain error codes, HTTP status mapping, and translations
   - `add-provider`: implement pluggable integrations with the provider/strategy pattern
   - `add-generator`: scaffold repetitive code via `turbo gen` or derived scripts
   - `regenerate-api-clients`: regenerate OpenAPI spec and TanStack Query clients
-  - `definition-of-done`: final verification checklist before completing a task or PR
+  - `definition-of-done`: final verification checklist before completing a task or PR (for UI changes, check light/dark x themes x LTR/RTL, and `ui` / `mobile-ui` parity)
+  - `add-ui-primitive` (optional later skill): adds a primitive to `ui` and `mobile-ui` together
 
 ## Working rules for agents
 
@@ -174,6 +199,7 @@ so `turbo run <task>` works everywhere.
 - Internal dependencies use `workspace:*`. Don't change the template's tooling
   (test runner, tsconfig base, scripts) in a new package. If you think the
   template should change, say so instead.
+- theme, mobile-ui and mobile-features: generate from `@avuny/contracts` like any package, then add their dependencies (ask first). If the template must change for them (for example exporting source instead of dist so Metro and Tailwind class scanning can see it), say so and get approval instead of changing it silently, and record the deviation in the package's AGENTS.md.
 
 
   ## Testing (Vitest)

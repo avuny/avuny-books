@@ -7,7 +7,7 @@ description: "Apply when doing UI, styling, i18n, RTL layout or theming work on 
 
 ## Text: never hard-coded
 - **No user-visible string literals in code:** labels, placeholders, `aria-*`, `alt`, `title`, button text, page titles, toasts, empty/loading/error states, validation messages, displayed server errors.
-- **Frontend strings:** Feature UI strings live next to the feature in `@avuny/web-features` (with `en` as the shape and other locales typed as `typeof en`). Components access strings via `useMessages()` from `@avuny/web-features/core` (or `@avuny/web-features/host`).
+- **Frontend strings:** Locale, direction and `resolveLocale` come from `@avuny/i18n` (helpers only, no catalogs). Strings used by both web and mobile live in `web-mobile-shared/src/modules/<module>/messages` (`en` is the shape, other locales typed as `typeof en`). Platform-only strings live next to the feature in `web-features` or `mobile-features`. A key never exists in both. Components get strings via `useMessages()` from the `core` of `web-features` or `mobile-features`. Server error text lives in `api` (i18next).
 - **Server strings:** Error messages and server responses live in `@avuny/api` (under `src/intl/locales/<module>/{en,ar}.json`), translated with `trans({ lang })`.
 - **Locale and direction:** `Locale` type, `isRtl`, and `resolveLocale` come strictly from `@avuny/i18n`.
 - **Dates, numbers, currency:** Use shared `Intl`-based formatters from `@avuny/web-mobile-shared`.
@@ -26,5 +26,5 @@ description: "Apply when doing UI, styling, i18n, RTL layout or theming work on 
 - **Design tokens:** Colors, radius, spacing, and typography come from semantic tokens (`bg-background`, `text-foreground`, `bg-primary`). No raw hex/rgb, no `bg-white`/`text-black`, no one-off `dark:` color overrides.
 - **Independent axes:** Theme mode (`light`, `dark`, `system`) and color theme (`data-theme`). Every theme defines every token for both modes.
 - **Storage & Paint:** Apply the stored mode and theme before first paint on web (inline head script).
-- **Native:** Mobile consumes matching semantic token names mapped to a native theme object.
+- **Native:** Mobile consumes the same tokens from `@avuny/theme` (generated native theme).
 - **Verification:** A component is done when it looks correct in light and dark, every theme, LTR and RTL.

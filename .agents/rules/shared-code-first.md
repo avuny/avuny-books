@@ -15,9 +15,13 @@ Follow package boundaries and import directions. Search before writing: look in 
 | is a pure helper or Result type | `@avuny/utils` | Runtime-agnostic |
 | touches the DB, migrations, or Drizzle schema | `@avuny/db` | Only `@avuny/api` imports it |
 | is backend services, domain rules, or Hono routes | `@avuny/api` | Scoped by tenant/org |
+| is a design token (color, radius, spacing, type scale) | `@avuny/theme` | Runtime-agnostic |
+| is a string used on both web and mobile | `web-mobile-shared/src/modules/<m>/messages` | `en` shape, others `typeof en` |
 | is logic web and mobile both need (API client, query hooks, session, form logic, formatters) | `@avuny/web-mobile-shared` | Platform-agnostic, no DOM lib |
 | is a web UI primitive | `@avuny/ui` | Web only (shadcn/ui), logical CSS, theme tokens |
+| is a native primitive | `@avuny/mobile-ui` | Native only (Uniwind), twin of `ui`, theme tokens |
 | is a web screen or feature component | `@avuny/web-features` | Core, web, admin entrypoints; thin host contract |
+| is a native screen or feature component | `@avuny/mobile-features` | Core and `modules/<m>`, thin host contract |
 | is Vite host glue, router adapter, or providers | `@avuny/web-host` | Vite host apps only |
 | is native-only UI or glue | `apps/mobile-app` | Expo / React Native |
 | is routing, server entry, or host setup | the relevant app | `apps/*` (thin hosts) |
