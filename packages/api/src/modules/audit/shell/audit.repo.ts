@@ -1,6 +1,19 @@
+import { sql } from "@avuny/db"
 import type { Database } from "@avuny/db"
 import { auditEvents } from "@avuny/db"
 import type { WriteAuditEventInput } from "../core/audit.types.js"
+
+/**
+ * Wraps an optional IP string for insertion into an `inet` column.
+ * Drizzle/postgres.js cannot bind a plain JS string into an inet column directly:
+ * the driver treats it as a text parameter and postgres rejects the type mismatch.
+ * Using `cast(${val} as inet)` passes the value as a regular bound parameter
+ * (injection-safe) and lets postgres perform the cast. Undefined/null → SQL NULL.
+ */
+function inetParam(ip: string | undefined | null) {
+  if (!ip) return null
+  return sql`cast(${ip} as inet)`
+}
 
 /**
  * Writes a single audit event row.
@@ -25,8 +38,7 @@ export async function writeAuditEvent(
     subjectUserId: input.subjectUserId,
     sessionId: input.sessionId,
     identifierHmac: input.identifierHmac,
-    // inet columns in drizzle accept string; cast via unknown for the TS type
-    ipAddress: input.ipAddress as unknown as undefined,
+    ipAddress: inetParam(input.ipAddress) as unknown as string | undefined,
     userAgent: input.userAgent,
     requestId: input.requestId,
     metadata: input.metadata ?? {},
