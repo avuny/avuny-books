@@ -464,9 +464,9 @@ Record each answer here once resolved. Resolved items are marked Decided. Items 
 - Q6 Decided: the refresh token goes in the body for mobile only, because mobile has no cookies; web keeps the HttpOnly cookie (D5).
 - Q7 Admin hardening: require MFA for admin in v2? Serve admin-app from a separate domain? If the admin-app moves to a different main domain, the Q5 same-site assumption no longer holds for it. (Open)
 - Q8 Confirm managed (username-only) users are created only by the orgs module. (Open)
-- Q9 user\_providers is an existing table linked to user\_identifiers with no v1 requirement. What does it hold today (social login, credentials, something else)? Default: leave it and its relation untouched and unused by v1 code. If it currently stores password credentials, move them into users.password\_hash before slice 1. (Phase 0)
-- Q10 Is any OTP-only (LOGIN) sign-in route in use? Default: no. The LOGIN purpose is removed (§11 R2) and any such route is deleted, because v1 sign-in is identifier + password. (Phase 0)
-- Q11 Confirm the delivered users.ts and user-identifiers.ts do not drop columns that exist today. Default: the delivered files win, and any extra existing column is kept and listed in the gap list. (Phase 0)
+- Q9 Decided (Phase 0): `user_providers` does not exist in `packages/db`. `password_hash` is directly on `users`.
+- Q10 Decided (Phase 0): No OTP-only (LOGIN) sign-in route is in use. The `otpPurposeEnum` only has `SIGN_UP`, `ADD_IDENTIFIER`, `UPDATE_IDENTIFIER`, and `FORGET_PASSWORD`.
+- Q11 Decided (Phase 0): The delivered `users.ts` and `user-identifiers.ts` in `packages/db/src/schema/user/` already match §5 with all required constraints and indexes. No columns dropped.
 - Q12 Decided (hardening changes that touched binding decisions):
   - a. D9 timing: yes. Send after responding through the BackgroundRunner and never return OTP\_DELIVERY\_FAILED from public send endpoints (D9).
   - b. Absolute session lifetime: yes. `SESSION_ABSOLUTE_TTL`=90d, derived from sessions.created\_at, no new column (D4).
