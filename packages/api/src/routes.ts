@@ -8,6 +8,10 @@ import { structuredLogger } from "@hono/structured-logger"
 import { logger } from "@avuny/logger"
 import healthRoute from "./health.route.js"
 import { installRequestLanguage } from "./intl/i18next.js"
+import { otpRoutes } from "./modules/otp/index.js"
+import { authRoutes } from "./modules/auth/index.js"
+import { usersRoutes } from "./modules/users/index.js"
+import { adminRoutes } from "./modules/admin/index.js"
 
 // Initialize server i18n once at startup. Must be called before any request
 // uses trans(). Never call i18n.changeLanguage() after this — it is global and
@@ -27,11 +31,10 @@ app.use(
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.route("/", healthRoute)
-// Phase 0 stubs — routes added slice by slice:
-// app.route("/otp", OtpRoutes)
-// app.route("/auth", AuthRoutes)
-// app.route("/users", UsersRoutes)
-// app.route("/admin", AdminRoutes)
+app.route("/otp", otpRoutes)
+app.route("/auth", authRoutes)
+app.route("/users", usersRoutes)
+app.route("/admin", adminRoutes)
 
 app.onError(onError)
 

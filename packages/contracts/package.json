@@ -40,5 +40,7 @@
     "typescript": "~5.8.3",
     "vitest": "^3.2.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@avuny/zod": "workspace:*"
+  }
 }

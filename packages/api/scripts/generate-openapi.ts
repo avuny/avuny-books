@@ -1,7 +1,14 @@
-// scripts/generate-openapi.ts
+// Provide dummy secrets for OpenAPI spec generation if env vars are not set
+process.env.DATABASE_URL ??= "postgres://user:pass@localhost:5432/db"
+process.env.ACCESS_TOKEN_SECRET ??= "0123456789abcdef0123456789abcdef"
+process.env.VERIFICATION_TOKEN_SECRET ??= "0123456789abcdef0123456789abcdef"
+process.env.OTP_SECRET ??= "0123456789abcdef0123456789abcdef"
+process.env.AUDIT_HMAC_SECRET ??= "0123456789abcdef0123456789abcdef"
+
 import { writeFileSync, mkdirSync } from "fs"
 import { dirname } from "path"
-import { app } from "../src/index.js"
+
+const { app } = await import("../src/index.js")
 const outputPath = "./openapi/openapi.json"
 
 // make sure the directory exists

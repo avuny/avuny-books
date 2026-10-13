@@ -18,13 +18,13 @@ export type BackgroundTask = () => Promise<void>
  * Schedule a background task. The task runs after the response is sent.
  * Pass the Hono context so waituntil can access executionCtx.
  */
-export function scheduleBackground(task: BackgroundTask, c: Context): void {
+export function scheduleBackground(task: BackgroundTask, c?: Context): void {
   const runner = config.BACKGROUND_RUNNER
 
   if (runner === "waituntil") {
     // Cloudflare Workers / Vercel edge: keep the process alive for this promise.
-    const executionCtx = (c as unknown as { executionCtx?: { waitUntil: (p: Promise<unknown>) => void } })
-      .executionCtx
+    const executionCtx = (c as unknown as { executionCtx?: { waitUntil: (p: Promise<unknown>) => void } } | undefined)
+      ?.executionCtx
     if (executionCtx?.waitUntil) {
       executionCtx.waitUntil(task())
     } else {

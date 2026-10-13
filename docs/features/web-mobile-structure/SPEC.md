@@ -71,4 +71,4 @@ Tasks: CI runs lint, typecheck, build and test across the monorepo; add the ligh
 Acceptance: CI is green from a clean checkout.
 
 ## Kickoff prompt
-"Read the root and nested AGENTS.md, `.agents/rules` and `IMPLEMENTATION_PLAN.md`. Do Phase N only, following the operating rules. Stop and report when its acceptance checks pass."
+"Read the root and nested AGENTS.md, `.agents/rules` and `docs/features/web-mobile-structure/SPEC.md`. Do Phase N only, following the operating rules. Stop and report when its acceptance checks pass."

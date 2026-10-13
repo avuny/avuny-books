@@ -534,6 +534,10 @@ importers:
         version: 4.6.5
 
   packages/contracts:
+    dependencies:
+      '@avuny/zod':
+        specifier: workspace:*
+        version: link:../zod
     devDependencies:
       '@changesets/cli':
         specifier: ^2.29.7

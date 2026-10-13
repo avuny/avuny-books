@@ -476,6 +476,7 @@ Record each answer here once resolved. Resolved items are marked Decided. Items 
 - Q14 (New) Where does a user land after sign-up, sign-in and password reset on each client? Default: the app's existing home route from the Phase 0 client inventory; if there is none, the Home screen from slice 1. (Open)
 - Q15 (New) Admin-app shared components wait on the admin-web-features decision (§2). Resolve it before the slice 6 UI work. (Open)
 - Q16 (New) UI test tooling for web and mobile. Default: use what the repo already has; where there is none, run and report each slice's manual checks. (Open)
+- Q17 (New, Phase 0) First-admin seed: which identifier (email?) and how is the password supplied (env vars, prompted, one-time generated)? `packages/db` has no hasher today; adding `bcryptjs` there needs approval. (Open; blocks the seed script)
 
 ## 11. Reconciliation log (v1 spec vs existing schemas)
 

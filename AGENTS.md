@@ -251,3 +251,54 @@ Tests are part of the project contract. When changing code:
 - Follow the `database-seeding` skill when creating, modifying, or debugging database seed files.
 - Keep database infrastructure and reusable seed logic in `packages/db`, not `packages/api`.
 - Never run destructive database operations or seed production without explicit authorization.
+
+
+## Working on a feature
+
+Every feature has `docs/features/<name>/SPEC.md` (what to build) and
+`docs/features/<name>/PROGRESS.md` (where we are). Progress lives in these
+files and in git, never only in the chat. Another model may take over at any
+moment (usage limits), so keep the state current.
+
+### Start or continue a feature
+1. Read `PROGRESS.md` first, then only the SPEC sections it points to. Don't
+   read the whole spec and don't re-read earlier conversation.
+2. Check the real state: `git status`, `git log -5 --stat`, `git diff`.
+3. Run the checks (see below). Fix anything broken or half-finished from the
+   last step before starting new work.
+4. Continue from the first unchecked item in `PROGRESS.md`.
+5. If `PROGRESS.md` is missing or doesn't match the code, don't guess. First
+   compare the spec with the code and tests (read-only), write or fix
+   `PROGRESS.md`, then continue.
+
+### While working
+- Work in small steps. After each step: run the checks, update `PROGRESS.md`,
+  and commit. The commit message says what is done and what is next.
+- Mark an item `[x]` only when verified, with evidence next to it (file path
+  or test name). Use `[~]` for partial (say what is missing) and `[ ]` for
+  not started. Manual checks stay `[ ]` until someone has actually run them.
+- Keep `PROGRESS.md` a short checklist: where we are now, the next item,
+  failing checks, anything built differently from the spec. No long prose.
+- Don't rewrite the spec. Record decisions and answers in its open-questions
+  section. If the spec doesn't say something you need, add a question there
+  instead of guessing.
+
+### Checks
+From the repo root: typecheck, lint, tests, `openapi:generate`,
+`api:generate`. A slice is done only when all pass and the slice's "Done when"
+in the spec is met.
+
+### Before you stop
+If you are near a limit or ending the session: finish or revert the current
+edit, run the checks, write the exact next step in `PROGRESS.md`, and commit.
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->
