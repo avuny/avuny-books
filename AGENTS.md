@@ -292,6 +292,213 @@ in the spec is met.
 If you are near a limit or ending the session: finish or revert the current
 edit, run the checks, write the exact next step in `PROGRESS.md`, and commit.
 
+## Frontend Architecture and Package Boundaries
+
+### 1. Technology Stack
+
+**Web**
+- React + Vite + TypeScript.
+- `@tanstack/react-query` for server state, caching, queries, mutations, and invalidation.
+- `@tanstack/react-table` for web data tables.
+- React Hook Form for form state and submission.
+- Zod for schema validation.
+- The existing Avuny web UI package built on shadcn/ui.
+
+**Mobile**
+- React Native + Expo + TypeScript.
+- `@tanstack/react-query` for server state, caching, queries, mutations, and invalidation.
+- React Hook Form for form state and submission.
+- Zod for schema validation.
+- The existing Avuny mobile UI package using Uniwind and reusable native components.
+
+**API**
+- Use the existing Orval-generated API client, hooks, types, and query-key helpers.
+- Never manually edit generated files or duplicate generated API definitions.
+
+### 2. Required Package Boundaries
+
+Respect the existing monorepo architecture. Do not introduce alternative feature packages or move code across package boundaries without an explicit architectural reason.
+
+- `contracts`: The single source of truth for application schemas and shared contracts.
+- `web-features/core`: Shared web business logic, feature-independent web logic, and reusable web-specific abstractions.
+- `web-features/web`: Features and UI logic for the main web application.
+- `web-features/admin`: Features and UI logic for the administration application.
+- `mobile-features`: Mobile-specific feature implementations, following the existing repository structure.
+- Existing API, web UI, mobile UI, and utility packages retain their established responsibilities.
+
+Adapt paths and package names to the actual repository. Inspect existing code before creating files or directories.
+
+### 3. Contracts and Schemas
+
+All Zod schemas and application contracts must live in the existing `contracts` package.
+
+This includes, where applicable:
+- Form validation schemas.
+- Shared request and response schemas not already generated from the API contract.
+- Shared input and output types.
+- Reusable enums and validation rules.
+- Shared filter and query parameter schemas when they are genuine application contracts.
+
+Rules:
+- Do not define Zod schemas inside `web-features`, individual forms, tables, screens, or mobile components.
+- Import schemas and inferred types from `contracts`.
+- Reuse a single canonical schema when the same validation rules apply across multiple features or platforms.
+- Keep platform-independent validation in `contracts`. Platform-specific presentation and error rendering belong in the relevant frontend.
+- Do not duplicate schemas merely because web and mobile use different UI components.
+- Do not duplicate Orval-generated types or contracts without a clear reason.
+- Avoid circular dependencies between packages.
+
+### 4. Web Features Structure
+
+Organize web feature implementations as follows, adapting filenames to existing conventions:
+
+```text
+web-features/
+  src/
+    core/
+      api/
+      hooks/
+      query/
+      utils/
+
+    web/
+      user/
+        forms/
+        list/
+        details/
+        hooks/
+        index.ts
+
+      inventory/
+        forms/
+        list/
+        details/
+        hooks/
+        index.ts
+
+    admin/
+      user/
+        forms/
+        list/
+        details/
+        hooks/
+        index.ts
+
+      organizations/
+        forms/
+        list/
+        details/
+        hooks/
+        index.ts
+```
+
+This illustrates the logical organization; preserve the actual repository's existing paths and package exports.
+
+**`core/`**
+- Contains reusable web logic that is not specific to an individual feature or to the admin application.
+- Contains shared web query/mutation wrappers and other reusable abstractions where appropriate.
+- Must not contain individual feature screens, forms, or tables.
+- Must not become a dumping ground for arbitrary code. Keep code close to its owning feature unless it is genuinely reusable.
+
+**`web/`**
+- Contains features belonging to the main web application.
+- Each feature owns its forms, tables/lists, details, feature-specific hooks, and UI composition.
+- Features should consume shared logic from `core`, schemas from `contracts`, generated API operations from the API package, and reusable components from the web UI package.
+
+**`admin/`**
+- Contains features belonging to the admin application.
+- Follow the same feature-based organization as `web/`.
+- Reuse `core`, `contracts`, API operations, and UI components where appropriate.
+- Keep admin-specific workflows, screens, permissions, and behavior within the admin feature that owns them.
+
+Do not duplicate a complete feature between `web/` and `admin/` just to reuse a small amount of logic. Extract genuinely shared web logic into `core` or an appropriate existing shared module.
+
+### 5. Orval and Query/Mutation Wrappers
+
+Use three layers:
+
+1. **Generated API layer:** Orval-generated API operations, hooks, types, and query keys.
+2. **Shared web query layer:** Reusable wrappers and policies in `web-features/core`, where appropriate.
+3. **Feature layer:** Feature-specific hooks consumed by forms, tables, lists, and screens.
+
+The shared wrappers should preserve TypeScript inference and the relevant TanStack Query options. They may standardize error handling, mutation callbacks, invalidation, and other cross-feature behavior.
+
+Do not recreate Orval's functionality or obscure TanStack Query's normal behavior behind unnecessary abstractions.
+
+### 6. Mutation and Cache Invalidation Rules
+
+Every mutation must explicitly account for its effect on cached server data.
+
+- Use generated Orval query-key helpers or existing centralized helpers.
+- Invalidate affected queries after successful mutations.
+- Consider lists, filtered lists, pagination variants, details, and related aggregates.
+- Use targeted invalidation rather than invalidating the entire cache unnecessarily.
+- Await invalidation when required by the intended mutation completion behavior.
+- Avoid manually reconstructing generated query keys.
+- Do not duplicate the same invalidation logic in multiple forms.
+
+Shared mutation wrappers may support invalidation configuration, but feature hooks must determine which queries are affected by each operation.
+
+For example, a user update may invalidate the relevant user detail query and affected user lists. A user creation may invalidate lists that display the newly created user.
+
+Do not assume that the same invalidation targets apply to every mutation.
+
+### 7. Forms, Tables, and Lists
+
+**Forms**
+- Use React Hook Form.
+- Import validation schemas and inferred types from `contracts`.
+- Use feature-specific mutation hooks.
+- Handle pending, validation, API error, success, and duplicate-submission states.
+- Reuse existing UI form components.
+
+**Web tables**
+- Use `@tanstack/react-table` with the existing shadcn-based Avuny UI components.
+- Integrate server data through TanStack Query.
+- Keep filtering, sorting, pagination, and data-fetching behavior consistent with the API contract.
+- Handle loading, error, and empty states explicitly.
+
+**Mobile lists**
+- Use native React Native components and the existing Uniwind-based mobile UI package.
+- Share schemas, API contracts, and platform-independent logic where appropriate.
+- Do not force desktop table layouts or web UI components onto mobile.
+
+### 8. Shared Logic and Platform Separation
+
+Reuse code deliberately.
+
+Share:
+- Contracts and Zod schemas from `contracts`.
+- Orval-generated API operations and types.
+- Platform-independent business rules and utilities.
+- Query and mutation infrastructure where compatible with both platforms.
+- Filter, sorting, and pagination logic when its semantics are genuinely shared.
+
+Keep platform-specific:
+- shadcn-based web UI.
+- Uniwind-based React Native UI.
+- Web-specific hooks and abstractions in `web-features/core`.
+- Admin-only workflows in `web-features/admin`.
+- Main application workflows in `web-features/web`.
+- Mobile-specific navigation and interactions in the mobile feature package.
+
+Do not introduce platform-specific dependencies into `contracts`.
+
+### 9. Implementation and Verification
+
+Before implementing a feature:
+1. Inspect the relevant specification, existing package structure, API operations, generated query keys, contracts, and UI components.
+2. Identify which changes belong in `contracts`, the API package, `web-features/core`, `web-features/web`, `web-features/admin`, and mobile.
+3. Implement all required platforms and applications specified by the feature requirements.
+4. Reuse existing abstractions and follow established exports and import conventions.
+5. Verify mutation invalidation, form validation, loading/error/empty states, and relevant success behavior.
+6. Run applicable type checks, linting, tests, and builds.
+7. Report completed work separately for web, admin, and mobile, as applicable, and identify remaining tasks and failed checks.
+
+Do not mark a feature complete merely because its backend or generated API operations are implemented.
+
+Do not create duplicate schemas, packages, hooks, or UI abstractions when an existing implementation can be reused.s
+
 <!-- BEGIN:turborepo-agent-rules -->
 
 # This is NOT the Turborepo you know
