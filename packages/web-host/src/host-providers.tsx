@@ -5,6 +5,7 @@ import {
   LocaleProvider,
   RouterAdapterProvider,
   type RouterAdapter,
+  // SessionProvider,
 } from "@avuny/web-features/core";
 import { getLocale, setLocale, subscribeLocale } from "./locale-store";
 
@@ -26,7 +27,11 @@ export const HostProviders = ({
   return (
     <RouterAdapterProvider adapter={router}>
       <LocaleProvider value={localeState}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {/* <SessionProvider> */}
+          {children}
+          {/* </SessionProvider> */}
+        </QueryClientProvider>
       </LocaleProvider>
     </RouterAdapterProvider>
   );

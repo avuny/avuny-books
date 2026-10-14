@@ -16,7 +16,12 @@
     "api:generate": "orval --config orval.config.ts"
   },
   "dependencies": {
-    "@avuny/i18n": "workspace:*"
+    "@avuny/contracts": "workspace:*",
+    "@avuny/i18n": "workspace:*",
+    "@avuny/ui": "workspace:*",
+    "@tanstack/react-query": "^5.67.1",
+    "axios": "^1.12.2",
+    "lucide-react": "^1.54.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",

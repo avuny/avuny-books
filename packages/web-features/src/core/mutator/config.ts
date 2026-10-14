@@ -1,23 +1,26 @@
-const baseURL = process.env.NEXT_PUBLIC_BASEURL
-
-if (!baseURL) {
-  throw new Error(
-    "NEXT_PUBLIC_BASEURL is missing from environment variables"
-  )
-}
+// Host apps call configureApiClient() at startup with a validated base URL.
+// Empty baseURL means same-origin requests (Vite /api proxy).
 
 export const API_CONFIG = {
-  baseURL,
+  baseURL: "",
 
-  refreshTokenUrl: `${baseURL}/api/auth/token/refresh`,
+  refreshTokenUrl: "/api/auth/refresh",
 
   auth: {
     refreshStatusCode: 401,
-    refreshErrorCodes: ["UNAUTHENTICATED", "SERVER_ERROR"],
+    sessionGoneCodes: ["REFRESH_TOKEN_INVALID", "REFRESH_TOKEN_REUSED"],
   },
 
   headers: {
+    xRequestedWith: "x-requested-with",
+    xRequestedWithValue: "XMLHttpRequest",
+    language: "Accept-Language",
     organizationId: "x-organization-id",
-    language: "x-lang",
   },
+}
+
+export function configureApiClient(options: { baseURL: string }) {
+  const baseURL = options.baseURL.replace(/\/$/, "")
+  API_CONFIG.baseURL = baseURL
+  API_CONFIG.refreshTokenUrl = `${baseURL}/api/auth/refresh`
 }
